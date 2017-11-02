@@ -3,6 +3,8 @@ __author__ = 'bromix'
 import time
 import urlparse
 import requests
+import xbmcgui
+import json
 from ...youtube.youtube_exceptions import LoginException
 from ...kodion import Context
 from __config__ import api, youtube_tv, keys_changed
@@ -12,7 +14,7 @@ context = Context()
 
 class LoginClient(object):
     api_keys_changed = keys_changed
-
+    DEVKEYS = (xbmcgui.Window(10000).getProperty('plugin.video.youtube-configs') or None)
     CONFIGS = {
         'youtube-tv': {
             'system': 'YouTube TV',
@@ -29,8 +31,10 @@ class LoginClient(object):
     }
 
     def __init__(self, config=None, language='en-US', region='', access_token='', access_token_tv=''):
-        self._config = self.CONFIGS['main'] if config is None else config
-        self._config_tv = self.CONFIGS['youtube-tv']
+        if self.DEVKEYS is not None: print ("[plugin.video.youtube] Using Developer Keys") #use existing log method?
+        self._devkey = json.loads(self.DEVKEYS) if self.DEVKEYS is not None else ''
+        self._config = (self._devkey.get('main','') or (self.CONFIGS['main'] if config is None else config))
+        self._config_tv = (self._devkey.get('youtube-tv','') or self.CONFIGS['youtube-tv'])
         self._verify = context.get_settings().verify_ssl()
         # the default language is always en_US (like YouTube on the WEB)
         if not language:
